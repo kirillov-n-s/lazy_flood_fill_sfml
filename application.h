@@ -16,9 +16,13 @@ class application
 	sf::RectangleShape _tile;
 	void draw(uint32_t x, uint32_t y);
 
-	/*bool _paused = true;*/
-	uint64_t _time;
-	void update(int count);
+	const double _decay_base = 0.9995;
+	double _decay = _decay_base;
+	double _delta = 0.00005;
+
+	bool _animate = false;
+	void animate(double delta = 0.00001);
+
 	void handle_events();
 	void render();
 

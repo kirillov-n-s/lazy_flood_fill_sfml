@@ -8,20 +8,6 @@
 
 class floodfiller
 {
-	//const sf::Color* COLORS = new sf::Color[]
-	//{
-	//	{ 0xff, 0xda, 0xb9 }, //sand
-	//	{ 0xb0, 0x5b, 0x3b }, //soil
-	//	{ 0x5d, 0x82, 0x33 }, //greenery
-
-	//	{ 0x9e, 0x75, 0x40 }, //rock
-	//	{ 0x44, 0x5c, 0x3c }, //swamp
-	//	{ 0x1f, 0x44, 0x1e }, //tree
-
-	//	{ 0x7f, 0x8b, 0x52 }, //succulent
-	//	{ 0x32, 0x52, 0x88 }, //water
-	//};
-
 	const std::vector<sf::Color> COLORS =
 	{
 		sf::Color::Black,
@@ -50,8 +36,8 @@ class floodfiller
 
 	std::vector<tile*> _grid;
 
+	uint8_t _max_value = 0;
 	uint32_t _iterations = 0;
-	double _decay = 0.;
 	std::minstd_rand _engine;
 
 	uint32_t _width;
@@ -59,18 +45,21 @@ class floodfiller
 	uint32_t _size;
 
 	tile*& get(uint32_t x, uint32_t y);
+	tile*& get(uint32_t x, uint32_t y, std::vector<tile*>& buffer);
 	tile* get(uint32_t x, uint32_t y) const;
-	std::vector<tile*> get_neighbors(uint32_t x, uint32_t y);
-	void handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_t y);
-	void lazy_flood_fill(uint8_t value, float decay);
 
+	std::vector<tile*> get_neumann_neighbors(uint32_t x, uint32_t y);
+	void handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_t y);
+
+	std::vector<tile*> get_moore_neighbors(uint32_t x, uint32_t y);
+	std::vector<uint8_t> get_frequencies(const std::vector<tile*>& neighbors);
+	uint8_t most_frequent_value(const std::vector<uint8_t>& freqs);
 public:
 	floodfiller(uint32_t width, uint32_t height);
 	~floodfiller();
 
-	void generate(uint8_t value = 1, double decay = 0.9995);
+	void lazy_flood_fill(uint8_t value = 1, double decay = 0.9995);
 	void smooth();
-	/*void demo();*/
 	void clear();
 
 	sf::Color get_color(uint32_t x, uint32_t y) const;
@@ -78,5 +67,4 @@ public:
 	uint32_t width() const;
 	uint32_t height() const;
 	uint32_t iterations() const;
-	double decay() const;
 };
