@@ -7,13 +7,6 @@ void application::draw(uint32_t x, uint32_t y)
 	_window->draw(_tile);
 }
 
-void application::animate(double delta)
-{
-	for (int i = 0; i < 8; i++)
-		_floodfiller->lazy_flood_fill(i + 1, _decay - (1 - i) * delta);
-	_floodfiller->smooth();
-}
-
 void application::handle_events()
 {
 	sf::Event event;
@@ -26,6 +19,10 @@ void application::handle_events()
 		{
 			switch (event.key.code)
 			{
+			case sf::Keyboard::Space:
+				_iters = std::uniform_int_distribution<uint32_t>(_min, _max)(_engine);
+				_animate ^= true;
+				break;
 			case sf::Keyboard::Enter:
 				_floodfiller->clear();
 				break;
@@ -65,10 +62,6 @@ void application::handle_events()
 				_decay = _decay_base;
 				break;
 
-			case sf::Keyboard::Space:
-				_animate ^= true;
-				break;
-
 			case sf::Keyboard::Escape:
 				_window->close();
 				break;
@@ -86,6 +79,7 @@ void application::render()
 	_window->display();
 }
 
+//public interface
 application::application(floodfiller* floodfiller, const std::string& title, uint32_t dimension)
 	: _floodfiller(floodfiller), _title(title)
 {
@@ -114,7 +108,12 @@ void application::run()
 	
 		handle_events();
 		if (_animate)
-			animate();
+		{
+			_floodfiller->lazy_flood_fill(1, _decay);
+			_iters--;
+			if (!_iters)
+				_animate ^= true;
+		}
 		render();
 
 		uint64_t fps = 1000 / std::chrono::duration_cast<std::chrono::milliseconds>(clock.now() - then).count();

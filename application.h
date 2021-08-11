@@ -18,10 +18,13 @@ class application
 
 	const double _decay_base = 0.9995;
 	double _decay = _decay_base;
-	double _delta = 0.00005;
+	double _delta = 0.000025;
 
 	bool _animate = false;
-	void animate(double delta = 0.00001);
+	uint32_t _iters = 0;
+	uint32_t _min = 200;
+	uint32_t _max = 300;
+	std::minstd_rand _engine = std::minstd_rand(std::random_device()());
 
 	void handle_events();
 	void render();

@@ -56,7 +56,7 @@ std::vector<floodfiller::tile*> floodfiller::get_moore_neighbors(uint32_t x, uin
 
 std::vector<uint8_t> floodfiller::get_frequencies(const std::vector<tile*>& neighbors)
 {
-	std::vector<uint8_t> frequencies(_max_value + 1, 0);
+	std::vector<uint8_t> frequencies(COLORS.size(), 0);
 	for (const auto& n : neighbors)
 		frequencies[n->value]++;
 	return frequencies;
@@ -73,7 +73,7 @@ uint8_t floodfiller::most_frequent_value(const std::vector<uint8_t>& freqs)
 
 //public interface
 floodfiller::floodfiller(uint32_t width, uint32_t height)
-	: _width(width), _height(height), _size(width* height), _engine(std::random_device()())
+	: _width(width), _height(height), _size(width* height)
 {
 	_grid = std::vector<tile*>(_size);
 	for (uint32_t x = 0; x < _width; x++)
@@ -91,13 +91,13 @@ void floodfiller::lazy_flood_fill(uint8_t value, double decay)
 {
 	std::queue<tile*> queue;
 	double chance = 100.;
-	//std::uniform_int_distribution<uint32_t> start(0, _size - 1);
-	std::poisson_distribution<uint32_t> start((_size + _width) / 2);
-	std::uniform_int_distribution<int> fluct(-(int)_size / 4, _size / 4);
+	auto start = std::uniform_int_distribution<uint32_t>(0, _size - 1)(_engine);
+	/*auto start =
+		std::poisson_distribution<uint32_t>((_size + _width) / 2)(_engine)
+		+ std::uniform_int_distribution<int>(-(int)_size / 4, _size / 4)(_engine);*/
 	std::uniform_real_distribution<double> random(0., 100.);
 
-	queue.push(_grid[start(_engine) + fluct(_engine)]);
-	//queue.push(_grid[_size / 2 + _width / 2]);
+	queue.push(_grid[start]);
 	while (!queue.empty())
 	{
 		auto& tile = queue.front();
@@ -105,9 +105,10 @@ void floodfiller::lazy_flood_fill(uint8_t value, double decay)
 
 		tile->queued = false;
 		tile->filled = true;
-		tile->value = value;
-		if (_max_value < value)
-			_max_value = value;
+		tile->value += value;
+		auto max = COLORS.size() - 1;
+		if (tile->value > max)
+			tile->value = max;
 
 		if (random(_engine) <= chance)
 			handle_neighbors(queue, tile->x, tile->y);
@@ -128,8 +129,10 @@ void floodfiller::smooth()
 	{
 		for (int y = 0; y < _height; y++)
 		{
-			auto frequencies = get_frequencies(get_moore_neighbors(x, y));
+			auto neighbors = get_moore_neighbors(x, y);
+			auto frequencies = get_frequencies(neighbors);
 			auto most_freq = most_frequent_value(frequencies);
+
 			if (frequencies[most_freq] > 4)
 				get(x, y, buffer)->value = most_freq;
 		}
@@ -148,15 +151,7 @@ void floodfiller::clear()
 
 sf::Color floodfiller::get_color(uint32_t x, uint32_t y) const
 {
-	/*auto val = get(x, y).value / 8.f * 255.f;
-	return sf::Color(val, val, val);*/
-	
 	return COLORS[get(x, y)->value];
-
-	/*auto val = get(x, y)->value / 8.;
-	if (val == 0.)
-		return sf::Color(0, 0, 0);
-	return sf::Color(255 * val, 0, 0);*/
 }
 
 uint32_t floodfiller::width() const

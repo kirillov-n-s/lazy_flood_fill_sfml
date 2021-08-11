@@ -1,14 +1,12 @@
 #pragma once
-#include <iostream>
 #include <random>
 #include <vector>
 #include <queue>
-#include <SFML/System/Vector2.hpp>
 #include <SFML/Graphics/Color.hpp>
 
 class floodfiller
 {
-	const std::vector<sf::Color> COLORS =
+	/*const std::vector<sf::Color> COLORS =
 	{
 		sf::Color::Black,
 		sf::Color::Red,
@@ -18,6 +16,31 @@ class floodfiller
 		sf::Color::Magenta,
 		sf::Color::Yellow,
 		sf::Color::White,
+	};*/
+
+	const std::vector<sf::Color> COLORS =
+	{
+		{ 0x0a, 0x04, 0x3c },
+		{ 0x00, 0x23, 0x66 },
+		{ 0x23, 0x3e, 0x8b },
+		{ 0x0f, 0x52, 0xba },
+
+		{ 0xa3, 0xa8, 0x47 },
+		{ 0x61, 0xb1, 0x5a },
+		{ 0x5d, 0x82, 0x33 },
+		{ 0x1f, 0x44, 0x1e },
+		{ 0x1e, 0x6f, 0x5c },
+
+		{ 0x5a, 0x39, 0x21 },
+		{ 0x85, 0x60, 0x3f },
+		{ 0x9e, 0x75, 0x40 },
+		{ 0xbd, 0x93, 0x54 },
+
+		{ 0xe3, 0xd1, 0x8a },
+		{ 0xff, 0xc4, 0x78 },
+		{ 0xe0, 0x8f, 0x62 },
+		{ 0xcc, 0x73, 0x51 },
+		{ 0x5e, 0x45, 0x4b },
 	};
 
 	struct tile
@@ -36,9 +59,8 @@ class floodfiller
 
 	std::vector<tile*> _grid;
 
-	uint8_t _max_value = 0;
 	uint32_t _iterations = 0;
-	std::minstd_rand _engine;
+	std::minstd_rand _engine = std::minstd_rand(std::random_device()());
 
 	uint32_t _width;
 	uint32_t _height;
