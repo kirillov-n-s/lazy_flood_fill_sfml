@@ -29,7 +29,6 @@ class floodfiller
 		{ 0x61, 0xb1, 0x5a },
 		{ 0x5d, 0x82, 0x33 },
 		{ 0x1f, 0x44, 0x1e },
-		{ 0x1e, 0x6f, 0x5c },
 
 		{ 0x5a, 0x39, 0x21 },
 		{ 0x85, 0x60, 0x3f },
@@ -40,7 +39,19 @@ class floodfiller
 		{ 0xff, 0xc4, 0x78 },
 		{ 0xe0, 0x8f, 0x62 },
 		{ 0xcc, 0x73, 0x51 },
-		{ 0x5e, 0x45, 0x4b },
+
+		{ 0xff, 0x4c, 0x29 },
+		{ 0xff, 0x48, 0x48 },
+		{ 0xbd, 0x16, 0x16 },
+		{ 0x6f, 0x4c, 0x5b },
+
+		{ 0x26, 0x1c, 0x2c },
+		{ 0x08, 0x20, 0x32 },
+		{ 0x2c, 0x39, 0x4b },
+		{ 0x71, 0x6f, 0x81 },
+
+		{ 0xb2, 0xb1, 0xb9 },
+		{ 0xee, 0xee, 0xee },
 	};
 
 	struct tile
@@ -73,15 +84,15 @@ class floodfiller
 	std::vector<tile*> get_neumann_neighbors(uint32_t x, uint32_t y);
 	void handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_t y);
 
-	std::vector<tile*> get_moore_neighbors(uint32_t x, uint32_t y);
+	/*std::vector<tile*> get_moore_neighbors(uint32_t x, uint32_t y);
 	std::vector<uint8_t> get_frequencies(const std::vector<tile*>& neighbors);
-	uint8_t most_frequent_value(const std::vector<uint8_t>& freqs);
+	uint8_t most_frequent_value(const std::vector<uint8_t>& freqs);*/
 public:
 	floodfiller(uint32_t width, uint32_t height);
 	~floodfiller();
 
-	void lazy_flood_fill(uint8_t value = 1, double decay = 0.9995);
-	void smooth();
+	void lazy_flood_fill(uint32_t x, uint32_t y, char bias = 1, double decay = 0.9995);
+	/*void smooth();*/
 	void clear();
 
 	sf::Color get_color(uint32_t x, uint32_t y) const;

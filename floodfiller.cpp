@@ -40,36 +40,36 @@ void floodfiller::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_
 }
 
 //smooth utility
-std::vector<floodfiller::tile*> floodfiller::get_moore_neighbors(uint32_t x, uint32_t y)
-{
-	std::vector<tile*> neighbors(8);
-	neighbors[0] = get(x, y - 1);
-	neighbors[1] = get(x - 1, y);
-	neighbors[2] = get(x + 1, y);
-	neighbors[3] = get(x, y + 1);
-	neighbors[4] = get(x - 1, y - 1);
-	neighbors[5] = get(x - 1, y + 1);
-	neighbors[6] = get(x + 1, y - 1);
-	neighbors[7] = get(x + 1, y + 1);
-	return neighbors;
-}
-
-std::vector<uint8_t> floodfiller::get_frequencies(const std::vector<tile*>& neighbors)
-{
-	std::vector<uint8_t> frequencies(COLORS.size(), 0);
-	for (const auto& n : neighbors)
-		frequencies[n->value]++;
-	return frequencies;
-}
-
-uint8_t floodfiller::most_frequent_value(const std::vector<uint8_t>& freqs)
-{
-	int imax = 0;
-	for (int i = 0; i < freqs.size(); i++)
-		if (freqs[i] > freqs[imax])
-			imax = i;
-	return imax;
-}
+//std::vector<floodfiller::tile*> floodfiller::get_moore_neighbors(uint32_t x, uint32_t y)
+//{
+//	std::vector<tile*> neighbors(8);
+//	neighbors[0] = get(x, y - 1);
+//	neighbors[1] = get(x - 1, y);
+//	neighbors[2] = get(x + 1, y);
+//	neighbors[3] = get(x, y + 1);
+//	neighbors[4] = get(x - 1, y - 1);
+//	neighbors[5] = get(x - 1, y + 1);
+//	neighbors[6] = get(x + 1, y - 1);
+//	neighbors[7] = get(x + 1, y + 1);
+//	return neighbors;
+//}
+//
+//std::vector<uint8_t> floodfiller::get_frequencies(const std::vector<tile*>& neighbors)
+//{
+//	std::vector<uint8_t> frequencies(COLORS.size(), 0);
+//	for (const auto& n : neighbors)
+//		frequencies[n->value]++;
+//	return frequencies;
+//}
+//
+//uint8_t floodfiller::most_frequent_value(const std::vector<uint8_t>& freqs)
+//{
+//	int imax = 0;
+//	for (int i = 0; i < freqs.size(); i++)
+//		if (freqs[i] > freqs[imax])
+//			imax = i;
+//	return imax;
+//}
 
 //public interface
 floodfiller::floodfiller(uint32_t width, uint32_t height)
@@ -87,17 +87,13 @@ floodfiller::~floodfiller()
 		delete tile;
 }
 
-void floodfiller::lazy_flood_fill(uint8_t value, double decay)
+void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double decay)
 {
 	std::queue<tile*> queue;
 	double chance = 100.;
-	auto start = std::uniform_int_distribution<uint32_t>(0, _size - 1)(_engine);
-	/*auto start =
-		std::poisson_distribution<uint32_t>((_size + _width) / 2)(_engine)
-		+ std::uniform_int_distribution<int>(-(int)_size / 4, _size / 4)(_engine);*/
 	std::uniform_real_distribution<double> random(0., 100.);
 
-	queue.push(_grid[start]);
+	queue.push(get(x, y));
 	while (!queue.empty())
 	{
 		auto& tile = queue.front();
@@ -105,10 +101,9 @@ void floodfiller::lazy_flood_fill(uint8_t value, double decay)
 
 		tile->queued = false;
 		tile->filled = true;
-		tile->value += value;
-		auto max = COLORS.size() - 1;
-		if (tile->value > max)
-			tile->value = max;
+		int value = tile->value;
+		if (value + bias < COLORS.size() && value + bias > -1)
+			tile->value += bias;
 
 		if (random(_engine) <= chance)
 			handle_neighbors(queue, tile->x, tile->y);
@@ -121,25 +116,25 @@ void floodfiller::lazy_flood_fill(uint8_t value, double decay)
 	_iterations++;
 }
 
-void floodfiller::smooth()
-{
-	std::vector<tile*> buffer = _grid;
-
-	for (int x = 0; x < _width; x++)
-	{
-		for (int y = 0; y < _height; y++)
-		{
-			auto neighbors = get_moore_neighbors(x, y);
-			auto frequencies = get_frequencies(neighbors);
-			auto most_freq = most_frequent_value(frequencies);
-
-			if (frequencies[most_freq] > 4)
-				get(x, y, buffer)->value = most_freq;
-		}
-	}
-
-	_grid = buffer;
-}
+//void floodfiller::smooth()
+//{
+//	std::vector<tile*> buffer = _grid;
+//
+//	for (int x = 0; x < _width; x++)
+//	{
+//		for (int y = 0; y < _height; y++)
+//		{
+//			auto neighbors = get_moore_neighbors(x, y);
+//			auto frequencies = get_frequencies(neighbors);
+//			auto most_freq = most_frequent_value(frequencies);
+//
+//			if (frequencies[most_freq] > 4)
+//				get(x, y, buffer)->value = most_freq;
+//		}
+//	}
+//
+//	_grid = buffer;
+//}
 
 void floodfiller::clear()
 {
