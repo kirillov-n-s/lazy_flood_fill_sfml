@@ -37,6 +37,7 @@ class application
 	std::uniform_int_distribution<int> _dy;
 	const double _scatter_base = 0.35;
 	double _scatter = _scatter_base;
+	void set_up_distribution();
 
 	void update();
 	void handle_events();

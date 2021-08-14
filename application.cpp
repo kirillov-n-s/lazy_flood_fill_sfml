@@ -7,6 +7,34 @@ void application::draw(uint32_t x, uint32_t y)
 	_window->draw(_tile);
 }
 
+void application::set_up_distribution()
+{
+	auto width = _floodfiller->width();
+	auto height = _floodfiller->height();
+
+	double scalar = 0.75 * _tile_dim_base / _tile_dim;
+	uint32_t width_scaled = width * scalar;
+	uint32_t height_scaled = height * scalar;
+	uint32_t min = height_scaled, max = width_scaled;
+
+	bool x_over_y = max >= min;
+	if (!x_over_y)
+		std::swap(min, max);
+	_iters = std::uniform_int_distribution<uint32_t>(min, max)(_engine);
+
+	if (_centered)
+	{
+		_poisson_x = std::poisson_distribution<uint32_t>(_center.x);
+		_poisson_y = std::poisson_distribution<uint32_t>(_center.y);
+
+		int dx = max * _scatter, dy = min * _scatter;
+		if (!x_over_y)
+			std::swap(dx, dy);
+		_dx = std::uniform_int_distribution<int>(-dx, dx);
+		_dy = std::uniform_int_distribution<int>(-dy, dy);
+	}
+}
+
 void application::handle_events()
 {
 	sf::Event event;
@@ -21,33 +49,7 @@ void application::handle_events()
 			{
 			case sf::Keyboard::Space:
 				if ((_gen ^= true) && !_iters)
-				{
-					auto width = _floodfiller->width();
-					auto height = _floodfiller->height();
-
-					double scalar = 0.75 * _tile_dim_base / _tile_dim;
-					uint32_t width_scaled = width * scalar;
-					uint32_t height_scaled = height * scalar;
-					uint32_t min = height_scaled, max = width_scaled;
-					bool x_over_y = max >= min;
-					if (!x_over_y)
-						std::swap(min, max);
-					_iters = std::uniform_int_distribution<uint32_t>(min, max)(_engine);
-
-					if (_centered)
-					{
-						_poisson_x = std::poisson_distribution<uint32_t>(_center.x);
-						_poisson_y = std::poisson_distribution<uint32_t>(_center.y);
-						int dx, dy;
-						int dmax = max * _scatter, dmin = min * _scatter;
-						if (x_over_y)
-							dx = dmax, dy = dmin;
-						else
-							dx = dmin, dy = dmax;
-						_dx = std::uniform_int_distribution<int>(-dx, dx);
-						_dy = std::uniform_int_distribution<int>(-dy, dy);
-					}
-				}
+					set_up_distribution();
 				break;
 			case sf::Keyboard::Enter:
 				_floodfiller->clear();
@@ -56,14 +58,22 @@ void application::handle_events()
 			case sf::Keyboard::Delete:
 				_centered = false;
 				break;
+
 			case sf::Keyboard::LBracket:
 				_scatter -= 0.05;
+				if (_scatter < 0.)
+					_scatter = 0.;
 				break;
 			case sf::Keyboard::RBracket:
 				_scatter += 0.05;
+				if (_scatter > 0.5)
+					_scatter = 0.5;
 				break;
 			case sf::Keyboard::Backspace:
 				_scatter = _scatter_base;
+				break;
+			case sf::Keyboard::Backslash:
+				_scatter = 0.;
 				break;
 
 			case sf::Keyboard::RControl:
@@ -71,19 +81,28 @@ void application::handle_events()
 				break;
 			case sf::Keyboard::Left:
 				_decay -= _delta;
+				if (_decay < 0.)
+					_decay = 0.;
 				break;
 			case sf::Keyboard::Right:
 				_decay += _delta;
+				if (_decay > 1.)
+					_decay = 1.;
 				break;
 			case sf::Keyboard::Down:
 				_decay -= _delta * 10.;
+				if (_decay < 0.)
+					_decay = 0.;
 				break;
 			case sf::Keyboard::Up:
 				_decay += _delta * 10.;
+				if (_decay > 1.)
+					_decay = 1.;
 				break;
 			case sf::Keyboard::RShift:
 				_decay = _decay_base;
 				break;
+
 			case sf::Keyboard::End:
 				_decay = 1.;
 				break;
@@ -169,6 +188,8 @@ application::~application()
 {
 	delete _window;
 }
+
+
 
 void application::run()
 {
