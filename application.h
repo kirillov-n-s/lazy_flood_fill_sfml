@@ -27,14 +27,16 @@ class application
 	int _mod = 1;
 	std::minstd_rand _engine = std::minstd_rand(std::random_device()());
 
-	bool _posed = false;
-	sf::Vector2u _pos;
+	bool _centered = false;
+	sf::Vector2u _center;
 	std::uniform_int_distribution<uint32_t> _uni_x;
 	std::uniform_int_distribution<uint32_t> _uni_y;
 	std::poisson_distribution<uint32_t> _poisson_x;
 	std::poisson_distribution<uint32_t> _poisson_y;
 	std::uniform_int_distribution<int> _dx;
 	std::uniform_int_distribution<int> _dy;
+	const double _scatter_base = 0.35;
+	double _scatter = _scatter_base;
 
 	void update();
 	void handle_events();

@@ -20,7 +20,7 @@ void application::handle_events()
 			switch (event.key.code)
 			{
 			case sf::Keyboard::Space:
-				if (_gen ^= true)
+				if ((_gen ^= true) && !_iters)
 				{
 					auto width = _floodfiller->width();
 					auto height = _floodfiller->height();
@@ -34,12 +34,12 @@ void application::handle_events()
 						std::swap(min, max);
 					_iters = std::uniform_int_distribution<uint32_t>(min, max)(_engine);
 
-					if (_posed)
+					if (_centered)
 					{
-						_poisson_x = std::poisson_distribution<uint32_t>(_pos.x);
-						_poisson_y = std::poisson_distribution<uint32_t>(_pos.y);
+						_poisson_x = std::poisson_distribution<uint32_t>(_center.x);
+						_poisson_y = std::poisson_distribution<uint32_t>(_center.y);
 						int dx, dy;
-						int dmax = max / 2, dmin = min / 2;
+						int dmax = max * _scatter, dmin = min * _scatter;
 						if (x_over_y)
 							dx = dmax, dy = dmin;
 						else
@@ -51,7 +51,19 @@ void application::handle_events()
 				break;
 			case sf::Keyboard::Enter:
 				_floodfiller->clear();
-				_posed = false;
+				_centered = false;
+				break;
+			case sf::Keyboard::Delete:
+				_centered = false;
+				break;
+			case sf::Keyboard::LBracket:
+				_scatter -= 0.05;
+				break;
+			case sf::Keyboard::RBracket:
+				_scatter += 0.05;
+				break;
+			case sf::Keyboard::Backspace:
+				_scatter = _scatter_base;
 				break;
 
 			case sf::Keyboard::RControl:
@@ -93,21 +105,21 @@ void application::handle_events()
 
 		if (event.type == sf::Event::MouseButtonReleased)
 		{
-			auto pos = sf::Vector2u(sf::Mouse::getPosition(*_window)) / _tile_dim;
-			if (pos.x < 0 || pos.y < 0 || pos.x > _floodfiller->width() || pos.y > _floodfiller->height())
+			auto mouse = sf::Vector2u(sf::Mouse::getPosition(*_window)) / _tile_dim;
+			if (mouse.x < 0 || mouse.y < 0 || mouse.x > _floodfiller->width() || mouse.y > _floodfiller->height())
 				continue;
 
 			switch (event.mouseButton.button)
 			{
 			case sf::Mouse::Left:
-				_floodfiller->lazy_flood_fill(pos.x, pos.y, 1, _decay);
+				_floodfiller->lazy_flood_fill(mouse.x, mouse.y, 1, _decay);
 				break;
 			case sf::Mouse::Right:
-				_floodfiller->lazy_flood_fill(pos.x, pos.y, -1, _decay);
+				_floodfiller->lazy_flood_fill(mouse.x, mouse.y, -1, _decay);
 				break;
 			case sf::Mouse::Middle:
-				_pos = pos;
-				_posed = true;
+				_center = mouse;
+				_centered = true;
 				break;
 			}
 		}
@@ -117,7 +129,7 @@ void application::handle_events()
 void application::update()
 {
 	uint32_t x, y;
-	if (_posed)
+	if (_centered)
 		x = _poisson_x(_engine) + _dx(_engine),
 		y = _poisson_y(_engine) + _dy(_engine);
 	else
@@ -171,16 +183,19 @@ void application::run()
 			update();
 			_iters--;
 			if (!_iters)
-				_gen ^= true, _posed = false;
+				_gen ^= true, _centered = false;
 		}
 		render();
 
 		uint64_t fps = 1000 / std::chrono::duration_cast<std::chrono::milliseconds>(clock.now() - then).count();
 		std::string log = "[FPS: " + std::to_string(fps)
 			+ "] [Iterations: " + std::to_string(_floodfiller->iterations())
-			+ "] [Decay: " + std::to_string(_decay)
-			+ "] [Delta: " + std::to_string(_delta)
-			+ "] [Mod: " + (_mod == 1 ? "higher" : "lower") + "]";
+			+ "] [Decay: " + std::to_string(_decay) + ", delta: " + std::to_string(_delta)
+			+ "] [Mod: " + (_mod == 1 ? "higher" : "lower")
+			+ "] [" + (_centered
+				? "Centered at { " + std::to_string(_center.x) + ", " + std::to_string(_center.y) + " }, scatter: " + std::to_string(_scatter)
+				: "Non-centered")
+			+ "]";
 		_window->setTitle(_title + " " + log);
 	}
 }

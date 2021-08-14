@@ -2,7 +2,7 @@
 
 int main()
 {
-    auto ff = new floodfiller(640, 360);
-    application app(ff, "", 5);
+    auto ff = new floodfiller(320, 180);
+    application app(ff);
     app.run();
 }
