@@ -2,7 +2,7 @@
 
 int main()
 {
-    auto ff = new floodfiller(480, 270);
-    application app(ff, "Map Editor + Generator (using Lazy Flood Fill)", 7);
+    auto map = new tilemap(480, 270);
+    application app(map, "Map Editor + Generator", 7);
     app.run();
 }

@@ -3,7 +3,7 @@
 #include <vector>
 #include <queue>
 
-class floodfiller
+class tilemap
 {
 	struct tile
 	{
@@ -39,8 +39,8 @@ class floodfiller
 	std::vector<uint8_t> get_frequencies(const std::vector<tile*>& neighbors);
 	uint8_t most_frequent_value(const std::vector<uint8_t>& freqs);*/
 public:
-	floodfiller(uint32_t width, uint32_t height);
-	~floodfiller();
+	tilemap(uint32_t width, uint32_t height);
+	~tilemap();
 
 	void lazy_flood_fill(uint32_t x, uint32_t y, char bias, double decay, uint8_t limit);
 	/*void smooth();*/

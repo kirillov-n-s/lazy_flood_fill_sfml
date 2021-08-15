@@ -3,11 +3,11 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
-#include "floodfiller.h"
+#include "tilemap.h"
 
 class application
 {
-	floodfiller* _floodfiller;
+	tilemap* _tilemap;
 
 	std::string _title;
 	sf::RenderWindow* _window;
@@ -100,7 +100,7 @@ class application
 	void render();
 
 public:
-	application(floodfiller* floodfiller, const std::string& title = "", uint32_t dimension = 0u);
+	application(tilemap* tilemap, const std::string& title = "", uint32_t dimension = 0u);
 	~application();
 
 	void run();

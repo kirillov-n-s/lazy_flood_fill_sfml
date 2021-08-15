@@ -1,22 +1,22 @@
-#include "floodfiller.h"
+#include "tilemap.h"
 
-floodfiller::tile*& floodfiller::get(uint32_t x, uint32_t y)
+tilemap::tile*& tilemap::get(uint32_t x, uint32_t y)
 {
 	return _grid[(y * _width + x) % _size];
 }
 
-floodfiller::tile*& floodfiller::get(uint32_t x, uint32_t y, std::vector<tile*>& buffer)
+tilemap::tile*& tilemap::get(uint32_t x, uint32_t y, std::vector<tile*>& buffer)
 {
 	return buffer[(y * _width + x) % _size];
 }
 
-floodfiller::tile* floodfiller::get(uint32_t x, uint32_t y) const
+tilemap::tile* tilemap::get(uint32_t x, uint32_t y) const
 {
 	return _grid[(y * _width + x) % _size];
 }
 
 //lazy flood fill utility
-std::vector<floodfiller::tile*> floodfiller::get_neumann_neighbors(uint32_t x, uint32_t y)
+std::vector<tilemap::tile*> tilemap::get_neumann_neighbors(uint32_t x, uint32_t y)
 {
 	std::vector<tile*> neighbors(4);
 	neighbors[0] = get(x, y - 1);
@@ -26,7 +26,7 @@ std::vector<floodfiller::tile*> floodfiller::get_neumann_neighbors(uint32_t x, u
 	return neighbors;
 }
 
-void floodfiller::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_t y)
+void tilemap::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_t y)
 {
 	auto neighbors = get_neumann_neighbors(x, y);
 	for (auto& n : neighbors)
@@ -40,7 +40,7 @@ void floodfiller::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_
 }
 
 //smooth utility
-//std::vector<floodfiller::tile*> floodfiller::get_moore_neighbors(uint32_t x, uint32_t y)
+//std::vector<tilemap::tile*> tilemap::get_moore_neighbors(uint32_t x, uint32_t y)
 //{
 //	std::vector<tile*> neighbors(8);
 //	neighbors[0] = get(x, y - 1);
@@ -54,7 +54,7 @@ void floodfiller::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_
 //	return neighbors;
 //}
 //
-//std::vector<uint8_t> floodfiller::get_frequencies(const std::vector<tile*>& neighbors)
+//std::vector<uint8_t> tilemap::get_frequencies(const std::vector<tile*>& neighbors)
 //{
 //	std::vector<uint8_t> frequencies(COLORS.size(), 0);
 //	for (const auto& n : neighbors)
@@ -62,7 +62,7 @@ void floodfiller::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_
 //	return frequencies;
 //}
 //
-//uint8_t floodfiller::most_frequent_value(const std::vector<uint8_t>& freqs)
+//uint8_t tilemap::most_frequent_value(const std::vector<uint8_t>& freqs)
 //{
 //	int imax = 0;
 //	for (int i = 0; i < freqs.size(); i++)
@@ -72,7 +72,7 @@ void floodfiller::handle_neighbors(std::queue<tile*>& queue, uint32_t x, uint32_
 //}
 
 //public interface
-floodfiller::floodfiller(uint32_t width, uint32_t height)
+tilemap::tilemap(uint32_t width, uint32_t height)
 	: _width(width), _height(height), _size(width* height)
 {
 	_grid = std::vector<tile*>(_size);
@@ -81,13 +81,13 @@ floodfiller::floodfiller(uint32_t width, uint32_t height)
 			get(x, y) = new tile(x, y);
 }
 
-floodfiller::~floodfiller()
+tilemap::~tilemap()
 {
 	for (auto& tile : _grid)
 		delete tile;
 }
 
-void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double decay, uint8_t limit)
+void tilemap::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double decay, uint8_t limit)
 {
 	std::queue<tile*> queue;
 	double chance = 100.;
@@ -116,7 +116,7 @@ void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double deca
 	_iterations++;
 }
 
-//void floodfiller::smooth()
+//void tilemap::smooth()
 //{
 //	std::vector<tile*> buffer = _grid;
 //
@@ -136,7 +136,7 @@ void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double deca
 //	_grid = buffer;
 //}
 
-void floodfiller::clear()
+void tilemap::clear()
 {
 	_iterations = 0;
 	for (uint32_t x = 0; x < _width; x++)
@@ -144,22 +144,22 @@ void floodfiller::clear()
 			get(x, y)->value = 0;
 }
 
-uint8_t floodfiller::get_value(uint32_t x, uint32_t y) const
+uint8_t tilemap::get_value(uint32_t x, uint32_t y) const
 {
 	return get(x, y)->value;
 }
 
-uint32_t floodfiller::width() const
+uint32_t tilemap::width() const
 {
 	return _width;
 }
 
-uint32_t floodfiller::height() const
+uint32_t tilemap::height() const
 {
 	return _height;
 }
 
-uint32_t floodfiller::iterations() const
+uint32_t tilemap::iterations() const
 {
 	return _iterations;
 }

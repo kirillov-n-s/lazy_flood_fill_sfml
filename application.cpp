@@ -3,14 +3,14 @@
 void application::draw(uint32_t x, uint32_t y)
 {
 	_tile.setPosition({ (float)(x * _tile_dim), (float)(y * _tile_dim) });
-	_tile.setFillColor(COLORS[_floodfiller->get_value(x, y)]);
+	_tile.setFillColor(COLORS[_tilemap->get_value(x, y)]);
 	_window->draw(_tile);
 }
 
 void application::set_up_distribution()
 {
-	auto width = _floodfiller->width();
-	auto height = _floodfiller->height();
+	auto width = _tilemap->width();
+	auto height = _tilemap->height();
 
 	double scalar = 0.75 * _tile_dim_base / _tile_dim;
 	uint32_t width_scaled = width * scalar;
@@ -80,7 +80,7 @@ void application::handle_events()
 					set_up_distribution();
 				break;
 			case sf::Keyboard::Enter:
-				_floodfiller->clear();
+				_tilemap->clear();
 				_iters_init = _iters = 0;
 				_centered = _gen = false;
 				break;
@@ -162,16 +162,16 @@ void application::handle_events()
 		if (event.type == sf::Event::MouseButtonReleased)
 		{
 			auto mouse = sf::Vector2u(sf::Mouse::getPosition(*_window)) / _tile_dim;
-			if (mouse.x < 0 || mouse.y < 0 || mouse.x > _floodfiller->width() || mouse.y > _floodfiller->height())
+			if (mouse.x < 0 || mouse.y < 0 || mouse.x > _tilemap->width() || mouse.y > _tilemap->height())
 				continue;
 
 			switch (event.mouseButton.button)
 			{
 			case sf::Mouse::Left:
-				_floodfiller->lazy_flood_fill(mouse.x, mouse.y, 1, _decay, LIMITS[_ilimit]);
+				_tilemap->lazy_flood_fill(mouse.x, mouse.y, 1, _decay, LIMITS[_ilimit]);
 				break;
 			case sf::Mouse::Right:
-				_floodfiller->lazy_flood_fill(mouse.x, mouse.y, -1, _decay, LIMITS[_ilimit]);
+				_tilemap->lazy_flood_fill(mouse.x, mouse.y, -1, _decay, LIMITS[_ilimit]);
 				break;
 			case sf::Mouse::Middle:
 				_center = mouse;
@@ -191,22 +191,22 @@ void application::update()
 	else
 		x = _uni_x(_engine),
 		y = _uni_y(_engine);
-	_floodfiller->lazy_flood_fill(x, y, _dir, _decay, LIMITS[_ilimit]);
+	_tilemap->lazy_flood_fill(x, y, _dir, _decay, LIMITS[_ilimit]);
 }
 
 void application::render()
 {
 	_window->clear();
 
-	for (int x = 0; x < _floodfiller->width(); x++)
-		for (int y = 0; y < _floodfiller->height(); y++)
+	for (int x = 0; x < _tilemap->width(); x++)
+		for (int y = 0; y < _tilemap->height(); y++)
 			draw(x, y);
 
 	_window->draw(_info);
 
 	auto start = _info.getPosition() + _offset_init;
 	int i = 0;
-	print("Iterations:\n  " + std::to_string(_floodfiller->iterations()), start, i);
+	print("Iterations:\n  " + std::to_string(_tilemap->iterations()), start, i);
 	print("Decay:\n  " + std::to_string(_decay), start, ++++i);
 	print("Delta:\n  " + std::to_string(_delta), start, ++i);
 	print("Direction:\n  " + std::string(_dir == 1 ? "positive" : "negative"), start, ++++i);
@@ -223,14 +223,14 @@ void application::render()
 }
 
 //public interface
-application::application(floodfiller* floodfiller, const std::string& title, uint32_t dimension)
-	: _floodfiller(floodfiller), _title(title)
+application::application(tilemap* tilemap, const std::string& title, uint32_t dimension)
+	: _tilemap(tilemap), _title(title)
 {
 	_tile_dim = dimension ? dimension : _tile_dim_base;
 	_tile = sf::RectangleShape({ (float)_tile_dim, (float)_tile_dim });
 
-	auto width_orig = _floodfiller->width();
-	auto height_orig = _floodfiller->height();
+	auto width_orig = _tilemap->width();
+	auto height_orig = _tilemap->height();
 	auto width = width_orig * _tile_dim;
 	auto height = height_orig * _tile_dim;
 
@@ -276,13 +276,6 @@ void application::run()
 
 		uint64_t fps = 1000 / std::chrono::duration_cast<std::chrono::milliseconds>(clock.now() - then).count();
 		std::string log = "[FPS: " + std::to_string(fps) + "]";
-			/*+ "] [Iterations: " + std::to_string(_floodfiller->iterations())
-			+ "] [Decay: " + std::to_string(_decay) + ", delta: " + std::to_string(_delta)
-			+ "] [Mod: " + (_mod == 1 ? "higher" : "lower")
-			+ "] [" + (_centered
-				? "Centered at { " + std::to_string(_center.x) + ", " + std::to_string(_center.y) + " }, scatter: " + std::to_string(_scatter)
-				: "Non-centered")
-			+ "]";*/
 		_window->setTitle(_title + " " + log);
 	}
 }
