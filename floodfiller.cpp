@@ -87,7 +87,7 @@ floodfiller::~floodfiller()
 		delete tile;
 }
 
-void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double decay)
+void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double decay, uint8_t limit)
 {
 	std::queue<tile*> queue;
 	double chance = 100.;
@@ -102,7 +102,7 @@ void floodfiller::lazy_flood_fill(uint32_t x, uint32_t y, char bias, double deca
 		tile->queued = false;
 		tile->filled = true;
 		int value = tile->value;
-		if (value + bias < COLORS.size() && value + bias > -1)
+		if (value + bias < limit && value + bias > -1)
 			tile->value += bias;
 
 		if (random(_engine) <= chance)
@@ -144,9 +144,9 @@ void floodfiller::clear()
 			get(x, y)->value = 0;
 }
 
-sf::Color floodfiller::get_color(uint32_t x, uint32_t y) const
+uint8_t floodfiller::get_value(uint32_t x, uint32_t y) const
 {
-	return COLORS[get(x, y)->value];
+	return get(x, y)->value;
 }
 
 uint32_t floodfiller::width() const
